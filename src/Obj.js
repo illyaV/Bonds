@@ -18,7 +18,6 @@ Bonds.Obj = Bonds.Class.extend({
 
   _createElement: function () {
     this._element = $( "<div>", { id: this._id, class: "bonds-obj " + this.options.cssClass } );
-    this._element.html("<i class='fa fa-spinner fa-spin bonds-obj-spinner'></i>");
   },
 
   _setData: function (data) {
@@ -44,6 +43,14 @@ Bonds.Obj = Bonds.Class.extend({
     //template
     this._element.html( header );
   },
+
+  _showPreloader: function() {
+    this._element.addClass('load');
+  },
+
+  _hidePreloader: function() {
+    this._element.removeClass('load');
+  },
   
   /****************API***************/
   
@@ -61,6 +68,10 @@ Bonds.Obj = Bonds.Class.extend({
 
   getElement: function() {
     return this._element;
+  },
+
+  remove: function() {
+    this._element.remove();
   }
 
 });

@@ -1,10 +1,18 @@
 
 Bonds.Bond = Bonds.Obj.extend({
   options: {
-    cssClass: "bonds-obj-bond"
+    cssClass:   "bonds-obj-bond",
+    conections: { 
+      type:       "Bezier",
+      color:      "#CC3300",
+      assign:     null,
+      importance: "2"
+    }
   },
   initialize: function (manager, id, options, data) {
     Bonds.setOptions(this, options);
+
+    this._setConectionsOptions(data);
 
     this._root = null;
     this._branches = [];
@@ -14,7 +22,15 @@ Bonds.Bond = Bonds.Obj.extend({
     this._manager.addBond(this);
 
     this._initBranches();
-    this._buildLinks();
+    this._buildConnects();
+  },
+
+  _setConectionsOptions: function(data) {
+    for ( key in this.options.conections ) {
+      if ( this.options.conections.hasOwnProperty(key) ) {
+      	this.options.conections[key] = data['l'+key] || this.options.conections[key];
+      }
+    }
   },
 
   _initBranches: function() {
@@ -27,38 +43,34 @@ Bonds.Bond = Bonds.Obj.extend({
     };
   },
 
-  _buildLinks: function() {
-    this._buildLink( this._root.getId(), this._id );
+  _buildConnects: function() {
+    this._connect( this._root.getId(), this._id );
 
     for (var i = this._branches.length - 1; i >= 0; i--) {
-      this._buildLink( this._id, this._branches[i].getId() );
+      this._connect( this._id, this._branches[i].getId() );
     };
   },
+   
+  _connect: function(source, target, options) {
+  	console.log( source, target );
 
-  _buildLink: function(source, target, options) {
-    if (!this._manager.jsPlumb) {
-      this._manager.jsPlumb = window.jsPlumb.getInstance({
-		DragOptions : { cursor: "pointer", zIndex:2000 }
-	  });
-    }
-  	
-  	var jsPlumb = this._manager.jsPlumb,
-  	    src = jsPlumb.addEndpoint(source),
-  	    trg = jsPlumb.addEndpoint(target);		    	      
+  	var jsPlumb = this._manager.jsPlumb(),
+  	    pointOpt = {
+  	      endpoint:"Blank",
+  	      anchor:"AutoDefault"
+	    },
+  	    src     = jsPlumb.addEndpoint(source, pointOpt),
+  	    trg     = jsPlumb.addEndpoint(target, pointOpt),
+  	    connOpt = this.options.conections;		    	      
     
     jsPlumb.connect( {
       source: src,
       target: trg,
-      anchors:["Center", "Center"],
-      endpointStyle:{
-        fillStyle:"#4a7",
-	    radius: 3
-	  },
       paintStyle:{ 
-	    lineWidth: 4,
-	    strokeStyle: "#6c9",
+	    lineWidth:   connOpt.importance-0,
+	    strokeStyle: connOpt.color,
 	    outlineWidth: 1,
-	    outlineColor: "#4a7"
+	    outlineColor: "#555"
 	  }
 	} );
 

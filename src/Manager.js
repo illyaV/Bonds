@@ -55,8 +55,8 @@ Bonds.Manager = Bonds.Class.extend({
     }
   },
 
-  createBond: function(data){
-    new this.options.Bond( this, data.gid, {}, data );
+  createBond: function(level, id, data){
+    new this.options.Bond(this, id, {level: level}, data);
   },
 
   addOwner: function(obj) {
@@ -132,8 +132,15 @@ Bonds.Manager = Bonds.Class.extend({
     };
 
     this._curLevel = level;
-  }
+  },
 
+  jsPlumb: function() {
+    if (!this._jsPlumb) {
+      this._jsPlumb = window.jsPlumb.getInstance();
+    }
+
+    return this._jsPlumb;
+  }
 });
 
   Bonds.manager = function(elementId, id, options) {

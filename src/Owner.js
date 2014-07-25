@@ -38,11 +38,13 @@ Bonds.Owner = Bonds.Obj.extend({
     var self = this,
         callback = function(data) {
           self._setData(data);
-
+          self._hidePreloader(); 
           if (typeof fn === "function") {
             fn(data);
           }
         };
+
+    this._showPreloader();
 
     setTimeout( function(){ 
       Bonds.Util.ajax( "post", true, self.options.source, {"id": self._id}, callback);
@@ -68,16 +70,19 @@ Bonds.Owner = Bonds.Obj.extend({
             newOwner = new Bonds.Owner( this._manager, data[i].link[j].gid, options, data[i].link[j] );
             
             this._bonds.push(newOwner);
-
-            if (typeof callback === "function") {
-              callback(newOwner);
-            }
           }
           data[i].rootId = this._id;
-          this._manager.createBond( data[i] );
+          this._manager.createBond( this._level + 0.5, data[i].gid, data[i] );
         }
 
       }
+      
+      if (typeof callback === "function") {
+        for (var i = this._bonds.length - 1; i >= 0; i--) {
+          callback(this._bonds[i]);
+        }
+      }
+
     } else {
       this._loadData( this.createBonds.bind(this, callback) );
     }
