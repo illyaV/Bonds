@@ -17,7 +17,7 @@ Bonds.Obj = Bonds.Class.extend({
   },
 
   _createElement: function () {
-    this._element = $( "<div>", { id: this._id, class: "bonds-obj " + this.options.cssClass } );
+    this._element = $( "<div>", { id: this._id, class: "bonds-obj " + this.options.cssClass, tabindex: "-1" } );
   },
 
   _setData: function (data) {
@@ -72,6 +72,7 @@ Bonds.Obj = Bonds.Class.extend({
 
   remove: function() {
     this._element.remove();
+    this.fire("remove");
   }
 
 });

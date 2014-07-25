@@ -36,7 +36,21 @@
 
 	text-align: center;
 	overflow: hidden;
+
+  z-index: 2;
+
+  transition: box-shadow .2s;
 }
+
+.bonds-obj:hover{
+  box-shadow: 0 0 15px rgba(0, 0, 0, .5);
+  z-index: 3;
+}
+
+.bonds-obj:focus{
+  z-index: 3;
+}
+
 .bonds-obj.load:after, 
 .bonds-obj.load:before {
   display: inline-block;
@@ -110,4 +124,9 @@
   border-radius: 50%;
   background: #96c;
   border-color: #74a;
+}
+
+/*-------connect-------*/
+.bonds-connect {
+  z-index: 1;
 }

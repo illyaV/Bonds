@@ -60,16 +60,16 @@ Bonds.Manager = Bonds.Class.extend({
   },
 
   addOwner: function(obj) {
-    var objId = obj.getId(),
-        objLevel = obj.getLevel();
+    var id = obj.getId(),
+        level = obj.getLevel();
 
-    this._owners[objId] = obj;
+    this._owners[id] = obj;
     
-    if ( !this._levelObj[objLevel] ) {
-      this._levelObj[objLevel] = [];
+    if ( !this._levelObj[level] ) {
+      this._levelObj[level] = [];
     }
 
-    this._levelObj[objLevel].push( obj );
+    this._levelObj[level].push( obj );
 
     //this._subscribeOnOwner(obj);
 
@@ -77,19 +77,30 @@ Bonds.Manager = Bonds.Class.extend({
   },
 
   removeOwner: function(obj){
+    var id = obj.getId(),
+        levelObj = this._levelObj[obj.getLevel()];
 
+    delete this._owners[id];
+
+    for (var i = levelObj.length - 1; i >= 0; i--) {
+      if (levelObj[i] === obj) {
+        levelObj.splice(i, 1);
+      }
+    };
   },
 
   addBond: function(obj) {
-    var objId = obj.getId();
+    var id = obj.getId();
 
-    this._bonds[objId] = obj;
+    this._bonds[id] = obj;
 
     this._appendObj(obj);
   },
 
   removeBond: function(obj) {
+    var id = obj.getId();
 
+    delete this._bonds[objId];
   },
   
   // _subscribeOnOwner: function(obj) {

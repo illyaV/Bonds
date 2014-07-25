@@ -86,5 +86,10 @@ Bonds.Owner = Bonds.Obj.extend({
     } else {
       this._loadData( this.createBonds.bind(this, callback) );
     }
+  },
+
+  remove: function() {
+    this._manager.removeOwner(this);
+    Bonds.Obj.prototype.remove.apply( this, arguments );
   }
 });

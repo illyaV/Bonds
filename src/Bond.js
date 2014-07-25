@@ -50,6 +50,10 @@ Bonds.Bond = Bonds.Obj.extend({
       this._connect( this._id, this._branches[i].getId() );
     };
   },
+
+  _removeConnects: function() {
+    
+  },
    
   _connect: function(source, target, options) {
   	console.log( source, target );
@@ -66,14 +70,23 @@ Bonds.Bond = Bonds.Obj.extend({
     jsPlumb.connect( {
       source: src,
       target: trg,
+      connector: connOpt.type,
+      cssClass:  "bonds-connect",
       paintStyle:{ 
-	    lineWidth:   connOpt.importance-0,
-	    strokeStyle: connOpt.color,
+	    lineWidth:    connOpt.importance-0,
+	    strokeStyle:  connOpt.color,
 	    outlineWidth: 1,
 	    outlineColor: "#555"
 	  }
 	} );
 
 	jsPlumb.draggable(jsPlumb.getSelector(".bonds-obj")/*, { containment:".demo"}*/); 
+  },
+
+  remove: function() {
+    this._removeConnects();
+
+  	this._manager.removeOwner(this);
+  	Bonds.Obj.prototype.remove.apply( this, arguments );
   }
 });
