@@ -8,7 +8,7 @@ Bonds.Owner = Bonds.Obj.extend({
     Bonds.setOptions(this, options);
     this._bonds = [];
     this._bondsData = null;
-
+    console.log("new owner level = "+this.options.level);
     Bonds.Obj.prototype.initialize.apply( this, arguments );
 
     this._manager.addOwner(this);
@@ -57,7 +57,7 @@ Bonds.Owner = Bonds.Obj.extend({
         newOwner,
         options;
    
-    if (data) {
+    if (data !== null) {
       if ( this._bonds.length === 0 ) {
 
         for ( var i = 0, l = data.length; i < l; i++ ) {
@@ -65,30 +65,52 @@ Bonds.Owner = Bonds.Obj.extend({
           for ( var j = 0, k = data[i].link.length; j < k; j++ ) {
             
             options = Bonds.Util.cloneObject( this.options );
-            options.level++;
-            //newOwner = this._manager.getOwner(data[i].link[j].gid) || new Bonds.Owner( this._manager, data[i].link[j].gid, options, data[i].link[j] );
-            newOwner = new Bonds.Owner( this._manager, data[i].link[j].gid, options, data[i].link[j] );
-            
+            options.level += 1;
+
+            newOwner = this._manager.getOwner(data[i].link[j].gid) || new Bonds.Owner( this._manager, data[i].link[j].gid, options, data[i].link[j] );
             this._bonds.push(newOwner);
           }
+          
           data[i].rootId = this._id;
           this._manager.createBond( this._level + 0.5, data[i].gid, data[i] );
         }
 
-      }
-      
-      if (typeof callback === "function") {
-        for (var i = this._bonds.length - 1; i >= 0; i--) {
-          callback(this._bonds[i]);
+        if (typeof callback === "function") {
+          for (var i = this._bonds.length - 1; i >= 0; i--) {
+            callback(this._bonds[i]);
+          }
         }
+
       }
 
-    } else {
+    } else if (data === null) {
       this._loadData( this.createBonds.bind(this, callback) );
     }
   },
 
+  hideBonds: function() {
+    // var bonds = this._bonds;
+    
+    // console.log(this._id,bonds);
+    // debugger;
+
+    // for (var i = bonds.length - 1; i >= 0; i--) {
+    //   bonds[i].remove();
+    // };
+
+    this.fire("removeBonds", this);
+
+    this._bonds = [];
+  },
+
+  removeBonds: function() {
+    this.hideBonds();
+    this._bondsData = [];
+  },
+
   remove: function() {
+    this._bonds = [];
+    this._bondsData = null;
     this._manager.removeOwner(this);
     Bonds.Obj.prototype.remove.apply( this, arguments );
   }

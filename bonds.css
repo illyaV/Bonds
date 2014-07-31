@@ -26,8 +26,8 @@
   top: 50%;
   left: 50%;
 
-	min-width: 80px;
-	min-height: 80px;
+	min-width: 40px;
+	min-height: 40px;
 	
 	background: #6b5;
 	border-radius: 5px;
@@ -38,6 +38,8 @@
 	overflow: hidden;
 
   z-index: 2;
+
+  cursor: pointer;
 
   transition: box-shadow .2s;
 }
@@ -109,12 +111,16 @@
 }
 .bonds-obj-name {
 	position: absolute;
-  height: 20px;
   width: 100%;
   bottom: 0;
 
   background: #e4e4e4;
   border-top: 1px solid #a4a4a4;
+
+  padding: 2px 0;
+
+  font-size: 10px;
+  text-align: center;
 }
 .bonds-obj-state {
 }

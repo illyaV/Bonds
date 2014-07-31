@@ -82,8 +82,7 @@ Bonds.Class.prototype._visitSubscribers = function (action, type, arg, context) 
             
     for (i = 0; i < max; i += 1) {
       if (action === 'publish') {
-      	console.log("publish "+type);
-        subscribers[i].fn.call(subscribers[i].context, arg);
+      	subscribers[i].fn.call(subscribers[i].context, arg);
       } else {
         if (subscribers[i].fn === arg && subscribers[i].context === context) {
           subscribers.splice(i, 1);

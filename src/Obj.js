@@ -1,7 +1,7 @@
 
 Bonds.Obj = Bonds.Class.extend({
   options: {
-    level:     "",
+    level:     null,
     cssClass:  ""
   },
   
@@ -10,7 +10,8 @@ Bonds.Obj = Bonds.Class.extend({
     
     this._manager = manager;
     this._id      = id;
-    this._level   = this.options.level || 0;
+
+    this._level   = (this.options.level === undefined) ? 1000 : this.options.level;
 
     this._createElement();
     this._setData(data);
@@ -39,7 +40,7 @@ Bonds.Obj = Bonds.Class.extend({
   },
 
   _collect: function() {
-    var header = $("<h6>"+this._data.dbheader+"</h6>");
+    var header = $("<h6 class='bonds-obj-name'>"+this._data.dbheader+"<br>"+this._id+"</h6>");
     //template
     this._element.html( header );
   },
@@ -72,7 +73,7 @@ Bonds.Obj = Bonds.Class.extend({
 
   remove: function() {
     this._element.remove();
-    this.fire("remove");
+    this.fire("remove", this);
   }
 
 });

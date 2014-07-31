@@ -22,6 +22,7 @@ Bonds.Bond = Bonds.Obj.extend({
     this._manager.addBond(this);
 
     this._initBranches();
+    this._initHandlers();
     this._buildConnects();
   },
 
@@ -43,6 +44,30 @@ Bonds.Bond = Bonds.Obj.extend({
     };
   },
 
+  _initHandlers: function() {
+    this._root.on("remove", "remove", this);
+    
+    var branches = this._branches;
+
+    for (var i = branches.length - 1; i >= 0; i--) {
+      branches[i].on("remove", "_removeBranch", this);
+    };
+  },
+  
+  _removeHandlers: function() {
+  	if ( this._root ) {
+      this._root.off("remove", "remove", this);
+    }
+
+    var branches = this._branches;
+
+    for (var i = branches.length - 1; i >= 0; i--) {
+      if (branches[i]) {
+      	branches[i].off("remove", "_removeBranch", this);
+      }
+    };
+  },
+
   _buildConnects: function() {
     this._connect( this._root.getId(), this._id );
 
@@ -52,16 +77,30 @@ Bonds.Bond = Bonds.Obj.extend({
   },
 
   _removeConnects: function() {
+    var jsPlumb = this._manager.jsPlumb()
+
+    jsPlumb.detachAllConnections(this._id);
+  },
+
+  _removeBranch: function(obj) {
+    var branches = this._branches;
     
+    for (var i = branches.length - 1; i >= 0; i--) {
+      if (branches[i] === obj) {
+      	branches.splice(i, 1);
+      }
+    };
+
+    if ( this._branches.length === 0 ) {
+      this.remove();
+    }
   },
    
   _connect: function(source, target, options) {
-  	console.log( source, target );
-
   	var jsPlumb = this._manager.jsPlumb(),
   	    pointOpt = {
-  	      endpoint:"Blank",
-  	      anchor:"AutoDefault"
+  	      endpoint: "Blank",
+  	      anchor:   "AutoDefault"
 	    },
   	    src     = jsPlumb.addEndpoint(source, pointOpt),
   	    trg     = jsPlumb.addEndpoint(target, pointOpt),
@@ -70,7 +109,7 @@ Bonds.Bond = Bonds.Obj.extend({
     jsPlumb.connect( {
       source: src,
       target: trg,
-      connector: connOpt.type,
+      connector: ["Bezier", { curviness:70 }],
       cssClass:  "bonds-connect",
       paintStyle:{ 
 	    lineWidth:    connOpt.importance-0,
@@ -85,6 +124,11 @@ Bonds.Bond = Bonds.Obj.extend({
 
   remove: function() {
     this._removeConnects();
+
+    this._removeHandlers();
+
+    this._root = null;
+    this._branches = [];
 
   	this._manager.removeOwner(this);
   	Bonds.Obj.prototype.remove.apply( this, arguments );

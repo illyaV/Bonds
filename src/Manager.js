@@ -51,7 +51,7 @@ Bonds.Manager = Bonds.Class.extend({
   _createOwner: function(level, id, data) {
     var newOwner = this.getOwner(id);
     if (!newOwner) {
-      newOwner = new this.options.Owner(this, id, { "source": this.options.source, "level": level }, data);
+      newOwner = new this.options.Owner(this, id, { "source": this.options.source, "level": 0 }, data);
     }
   },
 
@@ -78,7 +78,7 @@ Bonds.Manager = Bonds.Class.extend({
 
   removeOwner: function(obj){
     var id = obj.getId(),
-        levelObj = this._levelObj[obj.getLevel()];
+        levelObj = this._levelObj[obj.getLevel()] || [];
 
     delete this._owners[id];
 
@@ -134,9 +134,9 @@ Bonds.Manager = Bonds.Class.extend({
         for (var j = levelObj.length - 1; j >= 0; j--) {
           levelObj[j].createBonds(callback);
         };
-      } else if (i > level) {
+      } else if (i === level) {
         for (var j = levelObj.length - 1; j >= 0; j--) {
-          levelObj[j].remove();
+          levelObj[j].hideBonds();
         };
       }
     
@@ -144,7 +144,8 @@ Bonds.Manager = Bonds.Class.extend({
 
     this._curLevel = level;
   },
-
+  
+//-----------jsPlumb-----------------
   jsPlumb: function() {
     if (!this._jsPlumb) {
       this._jsPlumb = window.jsPlumb.getInstance();
