@@ -9,20 +9,17 @@ Bonds.Bond = Bonds.Obj.extend({
       importance: "2"
     }
   },
+
   initialize: function (manager, id, options, data) {
     Bonds.setOptions(this, options);
 
     this._setConectionsOptions(data);
-
-    this._root = null;
-    this._branches = [];
 
     Bonds.Obj.prototype.initialize.apply( this, arguments );
 
     this._manager.addBond(this);
 
     this._initBranches();
-    this._initHandlers();
     this._buildConnects();
   },
 
@@ -35,41 +32,37 @@ Bonds.Bond = Bonds.Obj.extend({
   },
 
   _initBranches: function() {
-    var links = this._data.link;
+    var data  = this._data,
+        links = data.link;
 
-    this._root = this._manager.getOwner( this._data.rootId );
-    
+    for( var i = data.rootsId.length - 1; i >=0; i-- ) {
+      this.addRoot(this._manager.getOwner( data.rootsId[i] ));
+    }
+
     for (var i = links.length - 1; i >= 0; i--) {
-      this._branches.push( this._manager.getOwner(links[i].gid) );
-    };
-  },
-
-  _initHandlers: function() {
-    this._root.on("remove", "remove", this);
-    
-    var branches = this._branches;
-
-    for (var i = branches.length - 1; i >= 0; i--) {
-      branches[i].on("remove", "_removeBranch", this);
+      this.addBranch( this._manager.getOwner(links[i].gid) );
     };
   },
   
-  _removeHandlers: function() {
-  	if ( this._root ) {
-      this._root.off("remove", "remove", this);
-    }
+  _addRootListeners: function(obj) {
+    obj.on("remove", "remove", this);
+    obj.on("removeBranches", "remove", this);
+  },
+  _removeRootListeners: function(obj) {
+  	obj.off("remove", "remove", this);
+  	obj.off("removeBranches", "remove", this);
+  },
 
-    var branches = this._branches;
-
-    for (var i = branches.length - 1; i >= 0; i--) {
-      if (branches[i]) {
-      	branches[i].off("remove", "_removeBranch", this);
-      }
-    };
+  _addBranchListeners: function(obj) {
+   obj.on("remove", "removeBranch", this);
+  },
+  
+  _removeBranchListeners: function(obj) {
+  	obj.off("remove", "removeBranch", this);
   },
 
   _buildConnects: function() {
-    this._connect( this._root.getId(), this._id );
+    this._connect( this._roots[0].getId(), this._id );
 
     for (var i = this._branches.length - 1; i >= 0; i--) {
       this._connect( this._id, this._branches[i].getId() );
@@ -82,16 +75,8 @@ Bonds.Bond = Bonds.Obj.extend({
     jsPlumb.detachAllConnections(this._id);
   },
 
-  _removeBranch: function(obj) {
-    var branches = this._branches;
-    
-    for (var i = branches.length - 1; i >= 0; i--) {
-      if (branches[i] === obj) {
-      	branches.splice(i, 1);
-      }
-    };
-
-    if ( this._branches.length === 0 ) {
+  removeBranch: function(obj) {
+    if ( Bonds.Obj.prototype.removeBranch.apply( this, arguments ) === 0 ) {
       this.remove();
     }
   },
@@ -125,12 +110,10 @@ Bonds.Bond = Bonds.Obj.extend({
   remove: function() {
     this._removeConnects();
 
-    this._removeHandlers();
+    // this._roots = null;
+    // this._branches = [];
 
-    this._root = null;
-    this._branches = [];
-
-  	this._manager.removeOwner(this);
+  	this._manager.removeBond(this);
   	Bonds.Obj.prototype.remove.apply( this, arguments );
   }
 });

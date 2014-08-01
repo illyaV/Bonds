@@ -6,9 +6,10 @@ Bonds.Owner = Bonds.Obj.extend({
   
   initialize: function (manager, id, options, data) {
     Bonds.setOptions(this, options);
+    
     this._bonds = [];
     this._bondsData = null;
-    console.log("new owner level = "+this.options.level);
+    
     Bonds.Obj.prototype.initialize.apply( this, arguments );
 
     this._manager.addOwner(this);
@@ -16,101 +17,128 @@ Bonds.Owner = Bonds.Obj.extend({
 
   _setData: function (data) {
     if ( data && typeof data === "object" ) {
-      this.__dataLoading = false;
+
       this._bondsData = Bonds.Util.cloneObject( data.link ) || null;
-    
       return Bonds.Obj.prototype._setData.apply( this, [data] );
-    } else {
+    
+    } else if ( typeof this.options.source === "string" ) {
       
-      if ( typeof this.options.source === "string" && !this.__dataLoading ) {
-
-        this.__dataLoading = true;
-        this._loadData();
-
-      } else {
-        return;
-      }
+      this._loadData();
     
     }
+
+    return;
   },
 
   _loadData: function (fn) {
-    var self = this,
-        callback = function(data) {
-          self._setData(data);
-          self._hidePreloader(); 
-          if (typeof fn === "function") {
-            fn(data);
-          }
-        };
+    var self = this;
 
-    this._showPreloader();
+    if ( !this.__loadingData ) {
+      this._showPreloader();
+      this.__loadingData = $.Deferred();
 
-    setTimeout( function(){ 
-      Bonds.Util.ajax( "post", true, self.options.source, {"id": self._id}, callback);
-    }, Math.random()*1000);
-  }, 
+      //Bonds.Util.ajax( "post", true, this.options.source, {"id": this._id}, function(data){self.__loadingData.resolve(data);});
+      setTimeout( function(){ 
+        Bonds.Util.ajax( "post", true, self.options.source, {"id": self._id}, function(data){self.__loadingData.resolve(data);});
+      }, Math.random()*1000);
+      
+      this.__loadingData.done(function(data){
+        self._setData(data);
+        self._hidePreloader();
+      });
+    }
+    
+    if (typeof fn === "function") {
+      this.__loadingData.done(fn);
+    }
+  },
 
   createBonds: function(callback) {
     var self = this,
         data = this._bondsData,
-        newOwner,
-        options;
-   
-    if (data !== null) {
+        newBranch,
+        newBond,
+        options,
+        bondData;
+    
+    if (data === null) {
+    
+      this._loadData( this.createBonds.bind(this, callback) );
+    
+    } else {
+      
       if ( this._bonds.length === 0 ) {
 
         for ( var i = 0, l = data.length; i < l; i++ ) {
-          
           for ( var j = 0, k = data[i].link.length; j < k; j++ ) {
             
             options = Bonds.Util.cloneObject( this.options );
             options.level += 1;
 
-            newOwner = this._manager.getOwner(data[i].link[j].gid) || new Bonds.Owner( this._manager, data[i].link[j].gid, options, data[i].link[j] );
-            this._bonds.push(newOwner);
+            newOwner = this._manager.createOwner(data[i].link[j].gid, options, data[i].link[j]);
+            this.addBranch(newOwner);
+            newOwner.addRoot(this);
           }
           
-          data[i].rootId = this._id;
-          this._manager.createBond( this._level + 0.5, data[i].gid, data[i] );
+          bondData = Bonds.Util.cloneObject( data[i] );
+          bondData.rootsId = [this._id];
+          newBond = this._manager.createBond(data[i].gid, {"level": this._level + 0.5}, bondData);
         }
 
         if (typeof callback === "function") {
-          for (var i = this._bonds.length - 1; i >= 0; i--) {
-            callback(this._bonds[i]);
+          for (var i = this._branches.length - 1; i >= 0; i--) {
+            callback(this._branches[i]);
           }
         }
 
       }
+    }
+  },
 
-    } else if (data === null) {
-      this._loadData( this.createBonds.bind(this, callback) );
+  _addBond: function(obj){
+    this._bonds.push(obj);
+  },
+  _removeBond: function(obj) {
+  },
+
+  _addRootListeners: function(obj) {
+    obj.on("remove", "removeRoot", this);
+    obj.on("removeBranches", "removeRoot", this);
+  },
+  _removeRootListeners: function(obj) {
+    obj.off("remove", "removeRoot", this);
+    obj.off("removeBranches", "removeRoot", this);
+  },
+
+  _addBranchListeners: function(obj) {
+   obj.on("remove", "removeBranch", this);
+  },
+  
+  _removeBranchListeners: function(obj) {
+    obj.off("remove", "removeBranch", this);
+  },
+
+  removeRoot: function(obj) {
+    if ( Bonds.Obj.prototype.removeRoot.apply( this, arguments ) === 0 ) {
+      this.remove();
     }
   },
 
   hideBonds: function() {
-    // var bonds = this._bonds;
-    
-    // console.log(this._id,bonds);
-    // debugger;
-
-    // for (var i = bonds.length - 1; i >= 0; i--) {
-    //   bonds[i].remove();
-    // };
-
-    this.fire("removeBonds", this);
-
+    this.fire("removeBranches", this);
     this._bonds = [];
   },
 
   removeBonds: function() {
-    this.hideBonds();
     this._bondsData = [];
+    this.hideBonds();
   },
 
   remove: function() {
-    this._bonds = [];
-    this._bondsData = null;
+    // this.removeRoots();
+    // this.removeBranches();
+    // this.removeBonds();
+    
     this._manager.removeOwner(this);
     Bonds.Obj.prototype.remove.apply( this, arguments );
   }

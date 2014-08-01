@@ -43,20 +43,37 @@ Bonds.Manager = Bonds.Class.extend({
 
   refresh: function() {
 
-    this._createOwner(0, this._rootId, this.options.source);
+    this.createOwner(this._rootId, {"source": this.options.source, "level": 0}, this.options.source);
     this.setLevel();
     //this.setShape();
   },
   
-  _createOwner: function(level, id, data) {
-    var newOwner = this.getOwner(id);
-    if (!newOwner) {
-      newOwner = new this.options.Owner(this, id, { "source": this.options.source, "level": 0 }, data);
-    }
+  createOwner: function(id,options, data) {
+    // var newOwner = this.getOwner(id);
+    // if (!newOwner) {
+    //   newOwner = new this.options.Owner(this, id, { "source": this.options.source, "level": 0 }, data);
+    // }
+
+    // return newOwner;
+    console.time("newOwner");
+    var newOwner = this.getOwner(id) || new this.options.Owner(this, id, options, data);
+    console.timeEnd("newOwner");
+    return newOwner;
+
+    return this.getOwner(id) || new this.options.Owner(this, id, options, data);
   },
 
-  createBond: function(level, id, data){
-    new this.options.Bond(this, id, {level: level}, data);
+  createBond: function(id, options, data){
+    // var newBond = this.getBond(id);
+    // if (!newBond) {
+    //   newBond = new this.options.Bond(this, id, { "source": this.options.source, "level": 0 }, data);
+    // }
+    console.time("newBond");
+    var newBond = this.getBond(id) || new this.options.Bond(this, id, options, data);
+    console.timeEnd("newBond");
+    return newBond;
+
+    return this.getBond(id) || new this.options.Bond(this, id, options, data);
   },
 
   addOwner: function(obj) {
@@ -100,7 +117,7 @@ Bonds.Manager = Bonds.Class.extend({
   removeBond: function(obj) {
     var id = obj.getId();
 
-    delete this._bonds[objId];
+    delete this._bonds[id];
   },
   
   // _subscribeOnOwner: function(obj) {
@@ -111,6 +128,10 @@ Bonds.Manager = Bonds.Class.extend({
 
   _appendObj: function(obj) {
     this._element.append( obj._element.css( { top: obj.getLevel()*200 + 50 + "px", left: Math.random()*1200 + "px"} ) );
+  },
+
+  getBond: function(id){
+    return this._bonds[id];
   },
 
   getOwner: function(id){
@@ -155,6 +176,6 @@ Bonds.Manager = Bonds.Class.extend({
   }
 });
 
-  Bonds.manager = function(elementId, id, options) {
-    return new Bonds.Manager( elementId, id, options );
-  }
+Bonds.manager = function(elementId, id, options) {
+  return new Bonds.Manager( elementId, id, options );
+}
