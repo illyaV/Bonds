@@ -90,31 +90,3 @@ Bonds.Class.prototype._visitSubscribers = function (action, type, arg, context) 
       }
     }
 };
-
-  //-----events------
- //  on: function (ev, handler) {
- //    if ( this._element && this._element instanceof jQuery ) {
- //      if ( typeof handler === "function" ) handler = handler.bind(this);
- //      this._element.on( ev, handler );
- //    } else {
- //      console.error( "Trying to add event listener to object without '_element' option" );
- //    }
- //  },
-
- //  off: function (ev, handler) {
-	// if ( this._element && this._element instanceof jQuery ) {
-	//   if ( typeof handler === "function" ) handler = handler.bind(this);
-	//   this._element.off( ev, handler );
- //    } else {
- //      console.error( "Trying to remove event listener to object without '_element' option" );
- //    }
- //  },
-
- //  trigger: function (ev, parametrs) {
- //  	if ( this._element && this._element instanceof jQuery ) {
- //  	  this._element.trigger( ev, parametrs || {} );
- //    } else {
- //      console.error( "Trying to trigger event on object without '_element' option" );
- //    }
- //  }
-//}

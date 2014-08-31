@@ -11,6 +11,16 @@ Bonds.Owner = Bonds.Obj.extend({
     this._bondsData = null;
     
     Bonds.Obj.prototype.initialize.apply( this, arguments );
+    
+    var self = this;
+    this._element.mousedown(function(event){ 
+      event.preventDefault();
+      event.stopPropagation();
+      if( event.button == 2 ) {
+        self.createBonds();
+      }
+    });
+    
 
     this._manager.addOwner(this);
   },
@@ -57,7 +67,6 @@ Bonds.Owner = Bonds.Obj.extend({
     var self = this,
         data = this._bondsData,
         newBranch,
-        newBond,
         options,
         bondData;
     
@@ -74,6 +83,7 @@ Bonds.Owner = Bonds.Obj.extend({
             
             options = Bonds.Util.cloneObject( this.options );
             options.level += 1;
+            options.removed = true;
 
             newOwner = this._manager.createOwner(data[i].link[j].gid, options, data[i].link[j]);
             this.addBranch(newOwner);
@@ -82,23 +92,19 @@ Bonds.Owner = Bonds.Obj.extend({
           
           bondData = Bonds.Util.cloneObject( data[i] );
           bondData.rootsId = [this._id];
-          newBond = this._manager.createBond(data[i].gid, {"level": this._level + 0.5}, bondData);
+          this._manager.createBond(data[i].gid, {"level": this._level + 0.5}, bondData);
         }
 
         if (typeof callback === "function") {
           for (var i = this._branches.length - 1; i >= 0; i--) {
-            callback(this._branches[i]);
+            !function(self, i){ 
+              setTimeout( function() { callback(self._branches[i]); }, 1);
+            }(this, i);
           }
         }
 
       }
     }
-  },
-
-  _addBond: function(obj){
-    this._bonds.push(obj);
-  },
-  _removeBond: function(obj) {
   },
 
   _addRootListeners: function(obj) {
@@ -138,6 +144,7 @@ Bonds.Owner = Bonds.Obj.extend({
     // this.removeRoots();
     // this.removeBranches();
     // this.removeBonds();
+    if (this.options.removed === false) return;
     
     this._manager.removeOwner(this);
     Bonds.Obj.prototype.remove.apply( this, arguments );

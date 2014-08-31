@@ -18,6 +18,8 @@ Bonds.Bond = Bonds.Obj.extend({
     Bonds.Obj.prototype.initialize.apply( this, arguments );
 
     this._manager.addBond(this);
+    this.jsPlumb = this._manager.jsPlumb();
+    this._connections = {}
 
     this._initBranches();
     this._buildConnects();
@@ -62,36 +64,46 @@ Bonds.Bond = Bonds.Obj.extend({
   },
 
   _buildConnects: function() {
-    this._connect( this._roots[0].getId(), this._id );
+    this._connections[this._roots[0].getId()] = this._connect( this._roots[0].getId(), this._id );
 
     for (var i = this._branches.length - 1; i >= 0; i--) {
-      this._connect( this._id, this._branches[i].getId() );
+      this._connections[this._branches[i].getId()] = this._connect( this._id, this._branches[i].getId() );
     };
   },
 
-  _removeConnects: function() {
-    var jsPlumb = this._manager.jsPlumb()
+  _removeConnect: function(obj) {
+    var connection = this._connections[obj.getId()];
 
-    jsPlumb.detachAllConnections(this._id);
+    if ( connection ) {
+      this.jsPlumb.detach(connection);
+    }
+    delete this._connections[obj.getId()];
+  },
+
+  _removeAllConnects: function() {
+    this.jsPlumb.detachAllConnections(this._id);
+    this._connections = {};
   },
 
   removeBranch: function(obj) {
+    this._removeConnect(obj);
     if ( Bonds.Obj.prototype.removeBranch.apply( this, arguments ) === 0 ) {
       this.remove();
     }
   },
    
   _connect: function(source, target, options) {
-  	var jsPlumb = this._manager.jsPlumb(),
+  	var jsPlumb = this.jsPlumb,
   	    pointOpt = {
   	      endpoint: "Blank",
   	      anchor:   "AutoDefault"
 	    },
   	    src     = jsPlumb.addEndpoint(source, pointOpt),
   	    trg     = jsPlumb.addEndpoint(target, pointOpt),
-  	    connOpt = this.options.conections;		    	      
+  	    connOpt = this.options.conections,
+  	    connect;		    	      
     
-    jsPlumb.connect( {
+    connect = jsPlumb.connect( {
       source: src,
       target: trg,
       connector: ["Bezier", { curviness:70 }],
@@ -105,13 +117,18 @@ Bonds.Bond = Bonds.Obj.extend({
 	} );
 
 	jsPlumb.draggable(jsPlumb.getSelector(".bonds-obj")/*, { containment:".demo"}*/); 
+  
+    return connect;
   },
 
   remove: function() {
-    this._removeConnects();
+    this._removeAllConnects();
 
-    // this._roots = null;
-    // this._branches = [];
+    for (var i = this._branches.length - 1; i >= 0; i--) {
+    	this._branches[i].removeRoot( this._roots[0] );
+    };
+    this._roots = [];
+    this._branches = [];
 
   	this._manager.removeBond(this);
   	Bonds.Obj.prototype.remove.apply( this, arguments );

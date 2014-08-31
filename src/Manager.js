@@ -43,7 +43,7 @@ Bonds.Manager = Bonds.Class.extend({
 
   refresh: function() {
 
-    this.createOwner(this._rootId, {"source": this.options.source, "level": 0}, this.options.source);
+    this.createOwner(this._rootId, {source: this.options.source, level: 0, removed: false}, this.options.source);
     this.setLevel();
     //this.setShape();
   },

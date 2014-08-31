@@ -2,7 +2,8 @@
 Bonds.Obj = Bonds.Class.extend({
   options: {
     level:     null,
-    cssClass:  ""
+    cssClass:  "",
+    removed:   true
   },
   
   initialize: function (manager, id, options, data) {
@@ -18,6 +19,9 @@ Bonds.Obj = Bonds.Class.extend({
 
     this._createElement();
     this._setData(data);
+
+    var self = this;
+    this._element.on("dblclick", function(){self.remove();});
   },
 
   _createElement: function () {
@@ -47,7 +51,7 @@ Bonds.Obj = Bonds.Class.extend({
   
   addRoot: function(obj) {
     this._roots.push(obj);
-    //this._addRootListeners(obj);
+    this._addRootListeners(obj);
     return this;
   },
 
@@ -57,7 +61,7 @@ Bonds.Obj = Bonds.Class.extend({
     for (var i = roots.length - 1; i >= 0; i--) {
       if (roots[i] === obj) {
         roots.splice(i, 1);
-        //this._removeRootListeners(obj);
+        this._removeRootListeners(obj);
         break;
       } 
     };
@@ -84,7 +88,7 @@ Bonds.Obj = Bonds.Class.extend({
 
   addBranch: function(obj) {
     this._branches.push(obj);
-    //this._addBranchListeners(obj);
+    this._addBranchListeners(obj);
     return this;
   },
 
@@ -94,7 +98,7 @@ Bonds.Obj = Bonds.Class.extend({
     for (var i = branches.length - 1; i >= 0; i--) {
       if (branches[i] === obj) {
         branches.splice(i, 1);
-        //this._removeBranchListeners(obj);
+        this._removeBranchListeners(obj);
         break;
       } 
     };
@@ -155,6 +159,8 @@ Bonds.Obj = Bonds.Class.extend({
   },
 
   remove: function() {
+    if (this.options.removed === false) return;
+
     this._element.remove();
     this.fire("remove", this);
   }
