@@ -7,13 +7,13 @@ Bonds.Owner = Bonds.Obj.extend({
   initialize: function (manager, id, options, data) {
     Bonds.setOptions(this, options);
     
-    this._bonds = [];
+    //this._branchesData = [];
     this._bondsData = null;
     
     Bonds.Obj.prototype.initialize.apply( this, arguments );
     
     var self = this;
-    this._element.mousedown(function(event){ 
+    this._$element.mousedown(function(event){ 
       event.preventDefault();
       event.stopPropagation();
       if( event.button == 2 ) {
@@ -75,8 +75,7 @@ Bonds.Owner = Bonds.Obj.extend({
       this._loadData( this.createBonds.bind(this, callback) );
     
     } else {
-      
-      if ( this._bonds.length === 0 ) {
+      if ( this._branches.length === 0 ) {
 
         for ( var i = 0, l = data.length; i < l; i++ ) {
           for ( var j = 0, k = data[i].link.length; j < k; j++ ) {
@@ -117,7 +116,7 @@ Bonds.Owner = Bonds.Obj.extend({
   },
 
   _addBranchListeners: function(obj) {
-   obj.on("remove", "removeBranch", this);
+    obj.on("remove", "removeBranch", this);
   },
   
   _removeBranchListeners: function(obj) {
@@ -130,9 +129,31 @@ Bonds.Owner = Bonds.Obj.extend({
     }
   },
 
+  removeBranch: function(obj) {
+    var data = this._bondsData;
+
+    if ( Bonds.Obj.prototype.removeBranch.apply( this, arguments ) === 0 ) {
+      this._bondsData = [];
+    } else {//remove data for building branch- and bond-objects 
+      for ( var i = data.length - 1; i>= 0; i-- ) {
+        for (var j = data[i].link.length - 1; j >= 0; j--) {
+          if ( data[i].link[j].gid == obj.getId() ) {
+            data[i].link.splice(j, 1);
+          }
+        };
+
+        if ( data[i].link.length == 0 ) {
+          data.splice(i, 1);
+        }
+      };
+    }
+
+    return this._branches.length;
+  },
+
   hideBonds: function() {
     this.fire("removeBranches", this);
-    this._bonds = [];
+    this._branches = [];
   },
 
   removeBonds: function() {

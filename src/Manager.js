@@ -17,7 +17,7 @@ Bonds.Manager = Bonds.Class.extend({
 
     this._collect( elementId );
 
-    //this._initHandler();
+    this._initHandler();
 
     this.refresh();
   },
@@ -33,13 +33,16 @@ Bonds.Manager = Bonds.Class.extend({
   },
 
   _collect: function( id ) {
-    this._element = $( "#"+id ).addClass( "bonds-container" );
+    this._$element = $( "#"+id ).addClass( "bonds-container" );
   },
 
-  // _initHandler: function() {
-  //   this.on("newObj", "_addObj", this);
-  //   //this.on("initObj", "_createChildren", this);
-  // },
+  _initHandler: function() {
+    var self = this;
+
+    $(window).on("resize", function(){
+      self._refreshShape();
+    });
+  },
 
   refresh: function() {
 
@@ -127,7 +130,9 @@ Bonds.Manager = Bonds.Class.extend({
   // },
 
   _appendObj: function(obj) {
-    this._element.append( obj._element.css( { top: obj.getLevel()*200 + 50 + "px", left: Math.random()*1200 + "px"} ) );
+    obj.setPosition( (Math.floor(Math.random()*1200)) + ";" + (obj.getLevel()*200 + 50) );
+    this._$element.append( obj.getElement() );
+    this._refreshShape();
   },
 
   getBond: function(id){
@@ -165,7 +170,67 @@ Bonds.Manager = Bonds.Class.extend({
 
     this._curLevel = level;
   },
+//-----------shape-------------------
+  setShape: function(shape) {
+    this.options.shape = shape;
+    this._refreshShape(true);
+  },
+
+  _refreshShape: function(now) {
+    if (now === true) {
+      this.__refresh( this.__refreshed );
+    } else {
+      this.__refreshed = this.__refreshed+1 || 0;
+      setTimeout( this.__refresh.bind( this, this.__refreshed ), 200 );
+    }
+  },
   
+  __refresh: function(flag) {
+    if ( this.__refreshed !== flag ) return;
+    
+    var shape = this.options.shape;
+    console.log(shape);
+    switch (shape) {
+      case "vertical":
+        this._showVerticalShape();
+        break;
+      case "horizontal":
+        this._showHorizontalShape();
+        break;
+      case "radial":
+        this._showRadialShape();
+        break;
+      default:
+        break;
+    }
+  },
+//to do
+  _showVerticalShape: function() {
+    var w = this._$element.width()-40,
+        h = this._$element.height()-40,
+        levelObj = this._levelObj,
+        vStep = h / levelObj.length,
+        hStep = 0,
+        curVStep = 20,
+        curHStep = 20,
+        pos = "";
+    console.log(levelObj);
+    for(var i = 0, l = levelObj.length; i < l; i++){
+      curVStep += vStep*i + vStep/2;
+      hStep = w / levelObj[i].length;
+      curHStep = 20;
+      for(var j = 0, k = levelObj[i].length; j < k; j++){
+        curHStep += hStep*j + hStep/2;
+        
+        pos = Math.floor(curHStep) + ";" + Math.floor(curVStep);
+        levelObj[i][j].setPosition(pos);
+        
+        curHStep -= hStep/2;
+      }
+      curVStep -= vStep/2;
+    }
+
+  },
 //-----------jsPlumb-----------------
   jsPlumb: function() {
     if (!this._jsPlumb) {

@@ -21,11 +21,14 @@ Bonds.Obj = Bonds.Class.extend({
     this._setData(data);
 
     var self = this;
-    this._element.on("dblclick", function(){self.remove();});
+    this._$element.on("dblclick", function(){self.remove();});
   },
 
   _createElement: function () {
-    this._element = $( "<div>", { id: this._id, class: "bonds-obj " + this.options.cssClass, tabindex: "-1" } );
+    this._$element = $( "<div>", { id: this._id, class: "bonds-obj " + this.options.cssClass, tabindex: "-1" } );
+    this._$preloader = $( "<div>", { class: "bonds-preloader" } ).append($("<i>", { class: "fa fa-spinner fa-spin bonds-preloader-icon" }));
+
+    this._$element.append( this._$preloader.hide() );
   },
 
   _setData: function (data) {
@@ -44,7 +47,7 @@ Bonds.Obj = Bonds.Class.extend({
     if (this.__collected) return;
     var header = $("<h6 class='bonds-obj-name'>"+this._data.dbheader+"<br>"+this._id+"</h6>");
     //template
-    this._element.html( header );
+    this._$element.append( header );
 
     this.__collected = true;
   },
@@ -133,11 +136,11 @@ Bonds.Obj = Bonds.Class.extend({
   _removeBranchListeners: function(obj) {},
 
   _showPreloader: function() {
-    this._element.addClass('load');
+    this._$preloader.show();
   },
 
   _hidePreloader: function() {
-    this._element.removeClass('load');
+    this._$preloader.hide();
   },
   
   /****************API***************/
@@ -155,13 +158,23 @@ Bonds.Obj = Bonds.Class.extend({
   },
 
   getElement: function() {
-    return this._element;
+    return this._$element;
+  },
+
+  setPosition: function(pos) {
+    pos = (pos+"").split(";");
+    
+    var left = pos[0] || "0",
+        top  = pos[1] || "0";
+    this._$element.css( { top: (top + "px"), left: (left + "px") } );
+
+    return this;
   },
 
   remove: function() {
     if (this.options.removed === false) return;
 
-    this._element.remove();
+    this._$element.remove();
     this.fire("remove", this);
   }
 
