@@ -109,14 +109,14 @@ Bonds.Bond = Bonds.Obj.extend({
       connector: ["Bezier", { curviness:70 }],
       cssClass:  "bonds-connect",
       paintStyle:{ 
-	    lineWidth:    connOpt.importance-0,
-	    strokeStyle:  connOpt.color,
-	    outlineWidth: 1,
-	    outlineColor: "#555"
-	  }
-	} );
+	      lineWidth:    connOpt.importance-0,
+	      strokeStyle:  connOpt.color,
+	      outlineWidth: 1,
+	      outlineColor: "#555"
+	    }
+	  } );
 
-	jsPlumb.draggable(jsPlumb.getSelector(".bonds-obj")/*, { containment:".demo"}*/); 
+	  jsPlumb.draggable(jsPlumb.getSelector(".bonds-obj")/*, { containment:".demo"}*/); 
   
     return connect;
   },

@@ -91,7 +91,7 @@ Bonds.Owner = Bonds.Obj.extend({
           
           bondData = Bonds.Util.cloneObject( data[i] );
           bondData.rootsId = [this._id];
-          this._manager.createBond(data[i].gid, {"level": this._level + 0.5}, bondData);
+          this._manager.createBond(data[i].gid, {"level": this._level + 1}, bondData);
         }
 
         if (typeof callback === "function") {

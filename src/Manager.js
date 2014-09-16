@@ -7,7 +7,9 @@ Bonds.Manager = Bonds.Class.extend({
     level:  1,
     shape:  "vertical",   // "vertical", "horizontal", "radial", "free"
 
-    source: "" 
+    source: "",
+
+    padding: 5 
   },
 
   initialize: function ( elementId, rootId, options) {
@@ -29,7 +31,8 @@ Bonds.Manager = Bonds.Class.extend({
     
     this._bonds    = {};
     this._owners   = {};
-    this._levelObj = [];
+    this._levelOwners = []; //owner-objects distributed across levels
+    this._levelBonds  = [[]]; //bond-objects distributed across levels
   },
 
   _collect: function( id ) {
@@ -80,54 +83,53 @@ Bonds.Manager = Bonds.Class.extend({
   },
 
   addOwner: function(obj) {
-    var id = obj.getId(),
-        level = obj.getLevel();
-
-    this._owners[id] = obj;
-    
-    if ( !this._levelObj[level] ) {
-      this._levelObj[level] = [];
-    }
-
-    this._levelObj[level].push( obj );
-
-    //this._subscribeOnOwner(obj);
-
-    this._appendObj(obj);
+    this._addObj(obj);
   },
 
   removeOwner: function(obj){
-    var id = obj.getId(),
-        levelObj = this._levelObj[obj.getLevel()] || [];
+    this._removeObj(obj);
+  },
 
-    delete this._owners[id];
+  addBond: function(obj) {
+    this._addObj(obj, "bonds");
+    console.log("addBond", obj.getLevel());
+  },
 
-    for (var i = levelObj.length - 1; i >= 0; i--) {
+  removeBond: function(obj) {
+    this._removeObj(obj, "bonds");
+  },
+
+  _addObj: function(obj, type) {
+    var level    = obj.getLevel(),
+        objs     = (type === "bonds") ? this._bonds      : this._owners,
+        levelObj = (type === "bonds") ? this._levelBonds : this._levelOwners;
+    
+    objs[ obj.getId() ] = obj;
+    
+    if ( !levelObj[level] ) {
+      levelObj[level] = [];
+    }
+
+    levelObj[level].push( obj );
+   
+    this._appendObj(obj);
+  },
+
+  _removeObj: function(obj, type) {
+    var level    = obj.getLevel(),
+        objs     = (type === "bonds") ? this._bonds      : this._owners,
+        levelObj = (type === "bonds") ? this._levelBonds : this._levelOwners;
+
+    delete objs[ obj.getId() ];
+
+    for ( var i = levelObj.length - 1; i >= 0; i--) {
       if (levelObj[i] === obj) {
         levelObj.splice(i, 1);
       }
     };
+
+    this._refreshShape();
   },
-
-  addBond: function(obj) {
-    var id = obj.getId();
-
-    this._bonds[id] = obj;
-
-    this._appendObj(obj);
-  },
-
-  removeBond: function(obj) {
-    var id = obj.getId();
-
-    delete this._bonds[id];
-  },
-  
-  // _subscribeOnOwner: function(obj) {
-  //   obj.on("create", "addOwner", this);
-  //   //obj.on("remove");
-  //   //obj.on("createChildren", "");
-  // },
 
   _appendObj: function(obj) {
     obj.setPosition( (Math.floor(Math.random()*1200)) + ";" + (obj.getLevel()*200 + 50) );
@@ -153,8 +155,8 @@ Bonds.Manager = Bonds.Class.extend({
           }
         };
 
-    for (var i = 0, l = this._levelObj.length; i < l; i++) {
-      levelObj = this._levelObj[i];
+    for (var i = 0, l = this._levelOwners.length; i < l; i++) {
+      levelObj = this._levelOwners[i];
 
       if (i < level) {
         for (var j = levelObj.length - 1; j >= 0; j--) {
@@ -206,28 +208,48 @@ Bonds.Manager = Bonds.Class.extend({
   },
 //to do
   _showVerticalShape: function() {
-    var w = this._$element.width()-40,
-        h = this._$element.height()-40,
-        levelObj = this._levelObj,
-        vStep = h / levelObj.length,
+    $(".grid").remove();
+
+    var w = this._$element.width()  - this.options.padding*2,
+        h = this._$element.height() - this.options.padding*2,
+        owners = this._levelOwners,
+        bonds = this._levelBonds,
+        vStep = h / owners.length,
         hStep = 0,
-        curVStep = 20,
-        curHStep = 20,
         pos = "";
-    console.log(levelObj);
-    for(var i = 0, l = levelObj.length; i < l; i++){
-      curVStep += vStep*i + vStep/2;
-      hStep = w / levelObj[i].length;
-      curHStep = 20;
-      for(var j = 0, k = levelObj[i].length; j < k; j++){
-        curHStep += hStep*j + hStep/2;
+    
+    $("<div>", {class:"grid", style:"width: "+w+"px; height: "+h+"px; top: "+this.options.padding+"px; left: "+this.options.padding+"px "}).appendTo(this._$element);
+    
+    for ( var i = 0, l = owners.length; i < l; i++ ) {
+      y = vStep/2 + vStep*i + this.options.padding;
+      hStep = w / owners[i].length;
+      $("<div>", {class:"grid", style:"width: "+w+"px; height: "+(y-this.options.padding)+"px; top: "+this.options.padding+"px; left: "+this.options.padding+"px "}).appendTo(this._$element);
+    
+      for(var j = 0, k = owners[i].length; j < k; j++){
+        x = hStep/2 + hStep*j + this.options.padding;
         
-        pos = Math.floor(curHStep) + ";" + Math.floor(curVStep);
-        levelObj[i][j].setPosition(pos);
-        
-        curHStep -= hStep/2;
+        pos = Math.floor(x) + ";" + Math.floor(y);
+        owners[i][j].setPosition(pos);
+
+        $("<div>", {class:"grid", style:"width: "+(x-this.options.padding)+"px; height: "+h+"px; top: "+this.options.padding+"px; left: "+this.options.padding+"px "}).appendTo(this._$element);
+    
       }
-      curVStep -= vStep/2;
+    }
+    
+    vStep = h / bonds.length,
+    hStep = 0,
+    pos = "";
+    
+    for ( var i = 0, l = bonds.length; i < l; i++ ) {
+      y = vStep*i + this.options.padding;
+      hStep = w / bonds[i].length;
+      
+      for(var j = 0, k = bonds[i].length; j < k; j++){
+        x = hStep/2 + hStep*j + this.options.padding;
+        
+        pos = Math.floor(x) + ";" + Math.floor(y);
+        bonds[i][j].setPosition(pos);
+      }
     }
 
   },
